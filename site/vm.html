@@ -1,0 +1,141 @@
+
+<html>
+	<head>
+		<title>vm</title>
+		<link rel="stylesheet" href="stylesheet.css">
+	</head>
+	<h1>vm</h1>
+	<ul>
+<li><a href="index.html">index</a></li>
+<li><a href="nes.html">nes</a></li>
+<li><a href="regret.html">regret</a></li>
+<li><a href="socialprog.html">socialprog</a></li>
+<li><a href="stuff.html">stuff</a></li>
+<li><a href="test.html">test</a></li>
+<li><a href="vm.html">vm</a></li>
+</ul>
+	<h1>the seemingly mystical world of virtual machines</h1>
+<h2>links</h2>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/chip-8">chip-8 wikipedia</a></li>
+<li><a href="https://100r.co/site/home.html">hundred rabbits</a></li>
+<li><a href="https://wiki.xxiivv.com/site/uxn.html">uxn</a></li>
+<li><a href="https://100r.co/site/uxn.html">varvara</a></li>
+</ul>
+<h2>uxn</h2>
+<p>my exploration began when i discovered the <strong>uxn</strong> virtual machine +
+language, made by the ingenious and oft eccentric duo of swashbuckling
+techno-sailors known as <strong>hundred rabbits</strong>. the <strong>uxn</strong> project
+consists of a stack machine with:</p>
+<ul>
+<li>256 bytes of working stack, and 256 bytes of return stack</li>
+<li>64kb of ram</li>
+<li>32 opcodes</li>
+<li>16 devices, each with 16 bytes of memory</li>
+</ul>
+<p>on top of this, they have created a <strong>forth</strong> style language called
+<strong>uxntal</strong>. at its core <strong>uxntal</strong>, and in fact all programming
+languages, are simply an elaborate series of <strong>push/pop</strong> and
+<strong>read/write</strong> calls: i.e, adding/removing things from the stack or
+storing/reading things from memory</p>
+<p>finally, they had to create a program to emulate this
+<strong>virtual machine</strong>. the approach is the exact same as an emulator for
+any <strong>physical machine</strong> (like a game boy, nes, n64, etc). you set up
+all the required data, you connect up all the required <em>devices</em>, and
+just like that bob is quite firmly your uncle. the folks over at
+<strong>hundred rabbits</strong> made a perfectly good emulator called
+<strong>varvara</strong></p>
+<p>you may well be thinking &quot;isn't it a bit overkill to create an entire virtual
+machine just to make a program/game?&quot;, and the answer to that thought is,
+maybe. however, the magic of this approach lies in the emulator. okay, so
+lets imagine that you are (hypothetically) using a <em>brand new</em> (or
+<em>brand old</em> i guess) operating system called <em>pat-os</em>, but
+<strong>varvara</strong> only works on linux, mac, and windows. you may very well be
+thinking, &quot;great, all my old <strong>uxn</strong> programs are useless :(&quot;. but fret
+not, my dear, for <strong>virtual machines</strong> are magical and wondrous things!
+all you have to do is write a new <em>emulator</em>, not a new program. in fact,
+you don't even have to look at a single line of <strong>uxntal</strong>. you just
+have to find a <em>pat-os</em> way of implementing the various stacks, memory
+stores and devices. once you've done that, any and all
+<strong>uxntal</strong> programs will work exactly the same as before: provided you
+do it correctly, which i have absolute faith that you will</p>
+<h2>chip8</h2>
+<p>i may seem cheery now (with the delicious strawberry aftertaste of hindsight),
+but at the time this all seemed to me like an absurdly impossible task. and
+so, i went searching for the oracles of the internet. they told me (through
+various visions and dreams) to gaze upon <em>chip8</em></p>
+<p><strong>chip8</strong> is an 8bit virtual machine and language from the 70's, and it
+was designed for an obscure home computer called the <em>cosmac vip</em>. why
+then, i hear you ask, did the oracles recommend such an archaic system? the
+answer, my dear friends, is that the <strong>chip8</strong> is a perfect example of
+what a virtual machine <em>actually</em> is. in fact, the
+<a href="https://en.wikipedia.org/wiki/chip-8">wikipedia</a> page is all you
+need to create a <strong>chip8</strong> emulator for yourself!</p>
+<h3>first, the hardware:</h3>
+<ul>
+<li><p>memory: the <strong>chip8</strong> has <strong>0x1000</strong> bytes of memory, and
+traditionally the first <strong>0x200</strong> bytes contained the interpreter itself.
+this means that our program (and all the 'data' like sprites, fonts, etc)
+must be contained within the range (<strong>0x200</strong>,<strong>0x1000</strong>)</p>
+</li>
+<li><p>registers: there are <strong>16</strong> registers (<strong>v0</strong> to <strong>vf</strong>),
+however the last register is also used as a flag for some operations. for
+instance, if you change a pixel (from <strong>1</strong> to <strong>0</strong>, or from
+<strong>0</strong> to <strong>1</strong>), vf will be set to <strong>1</strong>. there is also an 'address
+register' called <strong>i</strong>, which is <strong>12</strong> bits. and finally, a 'program
+counter' called <strong>pc</strong> which records the current 'line' (in this case,
+the byte) that the program is on</p>
+</li>
+<li><p><em>(return) stack</em>: this stack is used to return from a function (i.e,
+its a stack that only stores addresses to functions), and is large enough to
+go <strong>12</strong> functions deep</p>
+</li>
+<li><p>timers: the <strong>chip8</strong> has <strong>2</strong> 'timers', which are
+numbers that decrease at <strong>60hz</strong>: one is used as a generic timer, and
+one controls the sound</p>
+</li>
+<li><p>input: there are <strong>16</strong> keys [<strong>0</strong>,<strong>f</strong>], each stored as
+single bit</p>
+</li>
+<li><p>video/audio: the screen is <strong>64x32</strong> <strong>1bit</strong> color, and you
+draw to it using sprites of width <strong>8</strong> and height in the range
+[<strong>1</strong>,<strong>16</strong>]. the audio is a painful beep, and is enabled whenever
+the sound timer is non-zero</p>
+</li>
+</ul>
+<h3>now, the software:</h3>
+<p>okay, now that the hardware is out of the way...how do we program the dang
+thing? well, we use <strong>opcodes</strong> of course! everyone loves
+<strong>opcodes</strong>. an <strong>opcode</strong> is just a number that represents an
+instruction. i.e <strong>7 = pet dog</strong>, <strong>42 = kill jester</strong>, etc etc.
+the <a href="https://en.wikipedia.org/wiki/chip-8">wikipedia</a>
+entry (is excellent) and lists all of the <strong>35</strong>
+<strong>opcodes</strong>, as well as a c-pseudo code implementation of each. note:
+<strong>uxntal</strong> only has 32 <strong>opcodes</strong>!</p>
+<p>a <em>program</em> then, is simply a list of <strong>opcodes</strong>. the following
+describes how to <em>run</em> a program:</p>
+<ul>
+<li><p>load the program into memory (i.e, by reading a file, or a floppy disk, or a
+vinyl, or a stone tablet, etc)</p>
+</li>
+<li><p>reset the <strong>registers</strong>, <strong>pc = 0; i = 0; v0 = 0; ... vf = 0;</strong></p>
+</li>
+<li><p>read the first byte of the program. oh look, its <strong>0x6034</strong>! i love
+<strong>0x6034</strong>! this is an <strong>opcode</strong> which means &quot;set <strong>v0</strong> to
+the data stored at the <strong>0x34</strong>-th byte of our program&quot;. i.e, the
+<strong>6</strong> means &quot;set&quot;, the <strong>0</strong> means &quot;<strong>v0</strong>&quot;, and the
+<strong>34</strong> means &quot;<strong>0x34</strong>-th byte of our program&quot; (remember, these
+opcodes are all on the <a href="https://en.wikipedia.org/wiki/chip-8">wikipedia</a>
+<em>;^)</em> )</p>
+</li>
+<li><p>okay, we did that <strong>opcode</strong> really well! lets do the next one: to do
+this, we have to increment <strong>pc</strong> and then do the <strong>opcode</strong> that
+stored in memory at that location</p>
+</li>
+<li><p>then we just repeat this process forever and foreverever and forevereverever
+(well, until we get bored, the program ends, or the heat death of the
+universe)</p>
+</li>
+</ul>
+</html>
+		

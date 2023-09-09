@@ -8,7 +8,62 @@
 	<ul>
 <li><a href="index.html">index</a></li>
 <li><a href="nes.html">nes</a></li>
+<li><a href="regret.html">regret</a></li>
+<li><a href="socialprog.html">socialprog</a></li>
+<li><a href="stuff.html">stuff</a></li>
+<li><a href="test.html">test</a></li>
+<li><a href="vm.html">vm</a></li>
 </ul>
-	<h2>&amp; 6502 assembly</h2>
+	<h1>and 6502 assembly</h1>
+<h2>usefuls</h2>
+<ul>
+<li><strong>assembler</strong>: <a href="https://github.com/parasyte/asm6">asm6</a></li>
+<li><strong>examples</strong>: <a href="https://git.sr.ht/%7Erabbits/famicom-cookbook/tree/master/item/docs">famicom cookbook</a></li>
+<li><strong>emulator</strong>: <a href="https://fceux.com/web/home.html">fceux</a></li>
+<li><strong>the font of all knowledge</strong>: <a href="https://www.nesdev.org/wiki/Nesdev_Wiki">nesdev wiki</a></li>
+<li><strong>sprite/chr editor</strong>: <a href="https://git.sr.ht/%7Erabbits/nasu">nasu</a>, or maybe <a href="https://github.com/hatcatpat/spr">spr</a> or even <a href="https://github.com/hatcatpat/chrmkr">chrmkr</a></li>
+<li><strong>6502 opcodes</strong>: <a href="https://www.masswerk.at/6502/6502_instruction_set.html">masswerk</a></li>
+<li><strong>tutorial</strong>: <a href="https://nerdy-nights.nes.science/downloads/Nerdy-Nights-NES-Tutorials-v1.pdf">nerdy nights</a> (be warned: it uses a different assembler!)</li>
+</ul>
+<h2>specs</h2>
+<ul>
+<li>cpu: <strong>6502 8-bit</strong></li>
+<li>colors: <strong>52</strong></li>
+<li>colors per sprite: <strong>4</strong></li>
+<li>sprite size: <strong>8x8</strong> or <strong>8x16</strong></li>
+<li>sprite format: <strong>.chr</strong>, <a href="https://github.com/hatcatpat/spr">see spr for an explanation</a></li>
+<li>number of sprites: <strong>64</strong></li>
+<li>resolution: <strong>256x240 (pal)</strong> and <strong>256x224 (ntsc)</strong></li>
+<li>input: <strong>2 controllers, with 4-way directions, start, select, a and b</strong>. oh, and a <strong>robot</strong>, a <strong>gun</strong>, a <strong>dancepad</strong>, etc</li>
+</ul>
+<h2>how</h2>
+<p>a program is a series of bytes</p>
+<p>some of those bytes are instructions (opcodes), some are data (sprites, palette colors, background tiles, etc)</p>
+<p>this means that a &quot;function&quot; is simply a location in memory. these are called labels. but note, labels can in fact be to any location in memory, i.e. a sprite.</p>
+<p>the command <strong>db</strong> allows you to write a byte, or series of bytes, to your program. you can also use <strong>dw</strong> to write a word (two bytes)</p>
+<p>the first few bytes of the program must contain the <strong>nes header</strong>, which describes things like rom size and video settings</p>
+<p>your program will also contain a list of colors (for the palette), and sprite tables (for sprites, and background sprites). it will also probably have a list of sprites to use as a background. these can all be loaded using a simple loop</p>
+<p>whenever the nes boots, it will cause a reset interrupt. this will jump to the location specified by the <strong>reset vector</strong></p>
+<p>whenever the nes refreshes the screen, it will cause an nmi interrupt. this will jump to the location specified by the <strong>nmi vector</strong></p>
+<p>thus, the flow of the program is roughly:</p>
+<ul>
+<li>when reset interrupt occurs, run init code and halt</li>
+<li>when nmi interrupt occurs, perform one frame</li>
+</ul>
+<h2>misc</h2>
+<h3>input</h3>
+<p>i was used to handling input through callbacks, i.e. when a key is pressed, trigger function pressed(key). however, the nes does not trigger any interrupts for things like that. so, the method i have been using is:</p>
+<ul>
+<li>each frame, cache the input state</li>
+<li>a key has been pressed means that: (previous is false) and (current is true)</li>
+</ul>
+<p>unfortunately, this means that i have to copy the input state and perform the check every frame.</p>
+<h3>macros</h3>
+<p>macros can be used to define constants (i.e., make a human-readable name for a common memory location).</p>
+<p>function-like macros, however, are a gift and a curse. if you pepper your code with them, you run the risk of increasing the size of your program unnecessarily. if code needs to be reused, make it a proper &quot;function&quot; like so</p>
+<pre><code>function:
+    do thing
+    rts
+</code></pre>
 </html>
 		

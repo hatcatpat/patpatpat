@@ -1,6 +1,8 @@
 #!/bin/sh
 #
-# ./patpatpat.sh --pages dir --output dir
+# ./patpatpat.sh page
+
+md=md2html
 
 strip_path() {
 	echo "${1##*/}"
@@ -11,8 +13,8 @@ strip_ext() {
 
 menu() (
 	echo '<ul>'
-	for page in "$pages"/*; do
-		name=$(strip_path "$(strip_ext "$page")")
+	for p in pages/*; do
+		name=$(strip_path "$(strip_ext "$p")")
 		echo "<li><a href=\"$name.html\">$name</a></li>"
 	done
 	echo '</ul>'
@@ -34,76 +36,38 @@ template() (
 		"
 )
 
-loop_pages() (
-	for page in "$pages"/*; do
-		name=$(strip_path "$(strip_ext "$page")")
-		case "$page" in
-		*.html)
-			template "$name" "$(cat "$page")" >"$output/$name.html"
-			;;
-		*.md)
-			template "$name" "$($md "$page")" >"$output/$name.html"
-			;;
-		*)
-			if [ -x "$page" ]; then
-				template "$name" "$(./"$page" "$pages")" >"$output/$name.html"
-			fi
-			;;
-		esac
-	done
-)
-
-md=smu
-pages='pages'
-output='site'
-
-while [ $# -gt 0 ]; do
-	arg=$1
-	shift
-	case $arg in
-	-h | --help) ;;
-
-	-P | --pages)
-		if [ -d "$1" ]; then
-			pages=$1
-		else
-			echo "[error] pages: $1 is not a directory"
-			exit 1
-		fi
-		shift
+perform() (
+	echo "building $page..."
+	name=$(strip_path "$(strip_ext "$page")")
+	case "$page" in
+	*.html)
+		template "$name" "$(cat "$page")" >"site/$name.html"
 		;;
-
-	-O | --output)
-		if [ -d "$1" ]; then
-			output=$1
-		else
-			echo "[error] output: $1 is not a directory"
-			exit 1
-		fi
-		shift
+	*.md)
+		template "$name" "$($md "$page")" >"site/$name.html"
 		;;
-
 	*)
-		echo "[error] unknown flag, $arg"
-		exit 1
+		if [ -x "$page" ]; then
+			template "$name" "$(./"$page")" >"site/$name.html"
+		else
+			echo "ignoring $page"
+		fi
 		;;
 	esac
-done
+)
 
-if [ ! -d "$pages" ]; then
-	echo "[error] pages: $pages is not a directory"
-	exit 1
+if [ ! -d 'site' ]; then
+	mkdir 'site'
 fi
 
-if [ -d "$output" ]; then
-	rm "$output" -r
-	mkdir "$output"
+if [ ! -d 'extras' ]; then
+	mkdir 'extras'
 fi
 
 for file in extras/*; do
-	cp "$file" "$output/"
+	cp "$file" 'site/'
 done
 
-echo "[building...] pages=$pages output=$output"
-
-loop_pages
+for page in "$@"; do
+	perform
+done
